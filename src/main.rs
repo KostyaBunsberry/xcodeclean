@@ -23,15 +23,16 @@ fn main() {
     println!("Should delete archives set to {}", &args.archives_data_delete);
 
     if args.derived_data_delete {
-        let homeDir = home_dir().expect("Home path could not be found");
-        homeDir::push("Desktop");
-        let is_derived_data_found = match Path::new("{}/Desktop/testDelete/DerivedData/").try_exists() {
+        let mut path = home_dir().expect("Home path could not be found");
+        path.push("Desktop");
+        path.push("testDelete");
+        let is_found = match path.as_path().try_exists() {
             Ok(is_found) => is_found,
             Err(_) => {
-                println!("Derived data directory was NOT found, try setting a custom path");
+                println!("Error finding a path");
                 return;
             }
         };
-        println!("{}", is_derived_data_found);
+        println!("{}", is_found);
     }
 }
