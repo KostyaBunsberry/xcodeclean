@@ -1,38 +1,87 @@
 use clap::Parser;
-use std::fs::File;
-use std::path::Path;
 use dirs::home_dir;
+use std::fs::{remove_dir_all, create_dir};
 
 // TODO: add simulator app deletion
 /// Simple CLI to delete Xcode derived data and archives
 #[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
+#[command(author="Kostya Bunsberry", version, about, long_about = None)]
 struct Args {
     /// Should the program delete Xcode derived data
-    #[arg(short)]
-    derived_data_delete: bool,
+    #[arg(short='d')]
+    should_delete_derived: bool,
 
     /// Should the program delete Xcode archives
-    #[arg(short)]
-    archives_data_delete: bool,
+    #[arg(short='a')]
+    should_delete_archives: bool,
+
+    /// Sets custom path to Developer folder
+    #[arg(long="set-custom-path")]
+    custom_path: Option<String>, // use this path if set
+}
+
+fn delete_derived_data() {
+    let mut derived_path = match home_dir() {
+        Some(home_path) => home_path,
+        None => {
+            println!("❌ $HOME path could not be found");
+            return;
+        },
+    };
+    derived_path.push("Desktop/testDelete/DerivedData");
+
+    if !match derived_path.as_path().try_exists() {
+            Ok(is_found) => is_found,
+            Err(_) => {
+                println!("❌ Error finding archives folder");
+                return;
+            }
+        } {
+        println!("❌ DerivedData folder was not found");
+        println!("🧐 If you have a custom path for Developer folder set a custom path with --set-custom-path");
+        return;
+    }
+    
+    remove_dir_all(derived_path.as_path());
+    create_dir(derived_path.as_path());
+    println!("✅ DerivedData folder is now empty!");
+}
+
+fn delete_archives() {
+    let mut archives_path = match home_dir() {
+        Some(home_path) => home_path,
+        None => {
+            println!("❌ $HOME path could not be found");
+            return;
+        },
+    };
+    archives_path.push("Desktop/testDelete/Archives");
+
+    if !match archives_path.as_path().try_exists() {
+            Ok(is_found) => is_found,
+            Err(_) => {
+                println!("❌ Error finding archives folder");
+                return;
+            }
+        } {
+        println!("❌ Archives folder was not found");
+        println!("🧐 If you have a custom path for Developer folder set a custom path with --set-custom-path");
+        return;
+    }
+
+    remove_dir_all(archives_path.as_path());
+    create_dir(archives_path.as_path());
+    println!("✅ Archives folder is now empty!")
 }
 
 fn main() {
     let args = Args::parse();
-    println!("Should delete derived data set to {}", &args.derived_data_delete);
-    println!("Should delete archives set to {}", &args.archives_data_delete);
 
-    if args.derived_data_delete {
-        let mut path = home_dir().expect("Home path could not be found");
-        path.push("Desktop");
-        path.push("testDelete");
-        let is_found = match path.as_path().try_exists() {
-            Ok(is_found) => is_found,
-            Err(_) => {
-                println!("Error finding a path");
-                return;
-            }
-        };
-        println!("{}", is_found);
+    if args.should_delete_derived {
+        delete_derived_data();
+    }
+    
+    if args.should_delete_archives {
+        delete_archives();
     }
 }
