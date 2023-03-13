@@ -11,7 +11,7 @@ extern crate savefile_derive;
 // TODO: add simulator app deletion
 /// Simple CLI to delete Xcode derived data and archives
 #[derive(Parser, Debug)]
-#[command(author="Kostya Bunsberry", version, about, long_about = None)]
+#[command(version, about, long_about = None)]
 struct Args {
     /// Should the program delete Xcode derived data
     #[arg(short='d')]
