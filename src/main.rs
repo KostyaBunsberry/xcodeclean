@@ -1,6 +1,6 @@
 use clap::Parser;
 use dirs::home_dir;
-use std::fs::{remove_dir_all, create_dir};
+use std::{fs::{remove_dir_all, create_dir}, path::{Path, PathBuf}};
 
 extern crate savefile;
 use savefile::prelude::*;
@@ -21,9 +21,13 @@ struct Args {
     #[arg(short='a')]
     should_delete_archives: bool,
 
-    /// Sets custom path to Developer folder
+    /// Sets custom path to Developer folder (saves between sessions)
     #[arg(long="set-custom-path")]
     custom_path: Option<String>, // use this path if set
+
+    /// Resets path to default
+    #[arg(long="set-default-path")]
+    should_delete_custom_path: bool,
 }
 
 #[derive(Savefile)]
@@ -31,23 +35,50 @@ struct CustomPath {
     path_string: String
 }
 
-fn save_custom_path(path:&CustomPath) {
-    save_file("save.bin", 0, path).unwrap();
+fn save_custom_path(path:CustomPath) {
+    save_file("save.bin", 0, &path).unwrap();
+    println!("✅ Custom path was set")
 }
 
-fn load_custom_path() -> CustomPath {
-    load_file("save.bin", 0).unwrap()
+fn remove_custom_path() {
+    match std::fs::remove_file("save.bin") {
+        Ok(_) => {
+            println!("✅ Custom path was removed")
+        },
+        Err(_) => {
+            println!("❌ Custom path couldn't be removed, maybe no path was set")
+        }
+    };
+}
+
+fn load_custom_path() -> Result<CustomPath, SavefileError> {
+    load_file("save.bin", 0)
+}
+
+fn developer_path() -> Option<Box<PathBuf>> {
+    match load_custom_path() {
+        Ok(custom_path) => {
+            let path = Path::new(&custom_path.path_string);
+            let path_buf = PathBuf::from(path);
+            return Some(Box::new(path_buf));
+        },
+        Err(_) => {
+            let mut default_dev_path = match home_dir() {
+                Some(home_path) => home_path,
+                None => {
+                    println!("❌ $HOME path could not be found");
+                    return None;
+                },
+            };
+            default_dev_path.push("Library/Developer/Xcode/");
+            return Some(Box::new(default_dev_path));
+        }
+    }
 }
 
 fn delete_derived_data() {
-    let mut derived_path = match home_dir() {
-        Some(home_path) => home_path,
-        None => {
-            println!("❌ $HOME path could not be found");
-            return;
-        },
-    };
-    derived_path.push("Library/Developer/Xcode/DerivedData");
+    let mut derived_path = developer_path().expect("Default path could not be found or custom path could not be parsed");
+    derived_path.push("DerivedData");
 
     if !match derived_path.as_path().try_exists() {
             Ok(is_found) => is_found,
@@ -56,25 +87,25 @@ fn delete_derived_data() {
                 return;
             }
         } {
-        println!("❌ DerivedData folder was not found");
-        println!("🧐 If you have a custom path for Developer folder set a custom path with --set-custom-path");
+        println!("❌ DerivedData folder was not found at {}", derived_path.as_path().display());
+        println!("🧐 If you have a custom path for Developer folder set a custom path with --set-custom-path, or remove custom path with --set-default-path");
         return;
     }
     
-    remove_dir_all(derived_path.as_path());
-    create_dir(derived_path.as_path());
-    println!("✅ DerivedData folder is now empty!");
+    match remove_dir_all(derived_path.as_path()) {
+        Ok(_) => {
+          match create_dir(derived_path.as_path()) {
+            Ok(_) => println!("✅ DerivedData folder is now empty!"),
+            Err(_) => println!("❌ Error re-creating DerivedData folder")
+          }; 
+        },
+        Err(_) => println!("❌ Error deleting DerivedData folder")
+    };
 }
 
 fn delete_archives() {
-    let mut archives_path = match home_dir() {
-        Some(home_path) => home_path,
-        None => {
-            println!("❌ $HOME path could not be found");
-            return;
-        },
-    };
-    archives_path.push("Library/Developer/Xcode/Archives");
+    let mut archives_path = developer_path().expect("Default path could not be found or custom path could not be parsed");
+    archives_path.push("Archives");
 
     if !match archives_path.as_path().try_exists() {
             Ok(is_found) => is_found,
@@ -84,17 +115,41 @@ fn delete_archives() {
             }
         } {
         println!("❌ Archives folder was not found");
-        println!("🧐 If you have a custom path for Developer folder set a custom path with --set-custom-path");
+        println!("🧐 If you have a custom path for Developer folder set a custom path with --set-custom-path, or remove custom path with --set-default-path");
         return;
     }
 
-    remove_dir_all(archives_path.as_path());
-    create_dir(archives_path.as_path());
-    println!("✅ Archives folder is now empty!")
+    match remove_dir_all(archives_path.as_path()) {
+        Ok(_) => {
+          match create_dir(archives_path.as_path()) {
+            Ok(_) => println!("✅ Archives folder is now empty!"),
+            Err(_) => println!("❌ Error re-creating archives folder")
+          }; 
+        },
+        Err(_) => println!("❌ Error deleting archives folder")
+    };
 }
 
 fn main() {
     let args = Args::parse();
+
+    match args.custom_path {
+        Some(path_string) => {
+            let custom_path = CustomPath {
+                path_string: path_string
+            };
+            if !args.should_delete_custom_path {
+                save_custom_path(custom_path);
+            } else {
+                println!("🧐 You have set custom path to remove and then asked to set it... Bipolar much? I'm gonna remove it")
+            }
+        },
+        None => {}
+    }
+
+    if args.should_delete_custom_path {
+        remove_custom_path();
+    }
 
     if args.should_delete_derived {
         delete_derived_data();
