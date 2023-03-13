@@ -2,6 +2,12 @@ use clap::Parser;
 use dirs::home_dir;
 use std::fs::{remove_dir_all, create_dir};
 
+extern crate savefile;
+use savefile::prelude::*;
+
+#[macro_use]
+extern crate savefile_derive;
+
 // TODO: add simulator app deletion
 /// Simple CLI to delete Xcode derived data and archives
 #[derive(Parser, Debug)]
@@ -20,6 +26,19 @@ struct Args {
     custom_path: Option<String>, // use this path if set
 }
 
+#[derive(Savefile)]
+struct CustomPath {
+    path_string: String
+}
+
+fn save_custom_path(path:&CustomPath) {
+    save_file("save.bin", 0, path).unwrap();
+}
+
+fn load_custom_path() -> CustomPath {
+    load_file("save.bin", 0).unwrap()
+}
+
 fn delete_derived_data() {
     let mut derived_path = match home_dir() {
         Some(home_path) => home_path,
@@ -28,7 +47,7 @@ fn delete_derived_data() {
             return;
         },
     };
-    derived_path.push("Desktop/testDelete/DerivedData");
+    derived_path.push("Library/Developer/Xcode/DerivedData");
 
     if !match derived_path.as_path().try_exists() {
             Ok(is_found) => is_found,
@@ -55,7 +74,7 @@ fn delete_archives() {
             return;
         },
     };
-    archives_path.push("Desktop/testDelete/Archives");
+    archives_path.push("Library/Developer/Xcode/Archives");
 
     if !match archives_path.as_path().try_exists() {
             Ok(is_found) => is_found,
