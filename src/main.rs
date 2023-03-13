@@ -36,12 +36,12 @@ struct CustomPath {
 }
 
 fn save_custom_path(path:CustomPath) {
-    save_file("save.bin", 0, &path).unwrap();
+    save_file("xcodeclean_save.bin", 0, &path).unwrap();
     println!("✅ Custom path was set")
 }
 
 fn remove_custom_path() {
-    match std::fs::remove_file("save.bin") {
+    match std::fs::remove_file("xcodeclean_save.bin") {
         Ok(_) => {
             println!("✅ Custom path was removed")
         },
@@ -52,7 +52,7 @@ fn remove_custom_path() {
 }
 
 fn load_custom_path() -> Result<CustomPath, SavefileError> {
-    load_file("save.bin", 0)
+    load_file("xcodeclean_save.bin", 0)
 }
 
 fn developer_path() -> Option<Box<PathBuf>> {
