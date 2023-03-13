@@ -21,7 +21,7 @@ struct Args {
     #[arg(short='a')]
     should_delete_archives: bool,
 
-    /// Sets custom path to Developer folder (saves between sessions)
+    /// Sets custom path to Developer folder (saves between sessions), use pwd in your Developer folder to set this argument
     #[arg(long="set-custom-path")]
     custom_path: Option<String>, // use this path if set
 
@@ -144,7 +144,11 @@ fn main() {
                 println!("🧐 You have set custom path to remove and then asked to set it... Bipolar much? I'm gonna remove it")
             }
         },
-        None => {}
+        None => {
+            if !args.should_delete_derived && !args.should_delete_archives && !args.should_delete_custom_path {
+                println!("No arguments were set, use --help to see options")
+            }
+        }
     }
 
     if args.should_delete_custom_path {
