@@ -10,7 +10,7 @@ A simple CLI to clean Xcode /DerivedData and /Archives folders.
 
 ## Installation
 
-Install my-project with npm
+You can run this binary on any platform but there is no point without Xcode, so here is how to install xcodeclean with homebrew
 
 ```bash
   brew tap kostyabunsberry/tap
