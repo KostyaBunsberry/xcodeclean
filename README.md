@@ -40,12 +40,14 @@ Remove custom Xcode path and set to default
 Options
 ```bash
   xcodeclean --help
+  Usage: xcodeclean [OPTIONS]
+
   Options:
-  -d                                   Should the program delete Xcode derived data
-  -a                                   Should the program delete Xcode archives
-      --set-custom-path <CUSTOM_PATH>  Sets custom path to Xcode folder (saves between sessions), use pwd in your Xcode folder to set this argument
-      --set-default-path               Resets path to default
-  -h, --help                           Print help
-  -V, --version                        Print version
+    -d                                   Should delete Xcode /DerivedData contents
+    -a                                   Should delete Xcode /Archives contents
+        --set-custom-path <CUSTOM_PATH>  Sets custom path to Xcode folder (saves between sessions), use pwd in your Xcode folder to set this argument
+        --set-default-path               Resets Xcode path to default
+    -h, --help                           Print help
+    -V, --version                        Print version                     Print version
 ```
 

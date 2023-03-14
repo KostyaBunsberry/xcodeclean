@@ -13,19 +13,19 @@ extern crate savefile_derive;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    /// Should the program delete Xcode derived data
+    /// Should delete Xcode /DerivedData contents
     #[arg(short='d')]
     should_delete_derived: bool,
 
-    /// Should the program delete Xcode archives
+    /// Should delete Xcode /Archives contents
     #[arg(short='a')]
     should_delete_archives: bool,
 
-    /// Sets custom path to Developer folder (saves between sessions), use pwd in your Developer folder to set this argument
+    /// Sets custom path to Xcode folder (saves between sessions), use pwd in your Xcode folder to set this argument
     #[arg(long="set-custom-path")]
-    custom_path: Option<String>, // use this path if set
+    custom_path: Option<String>,
 
-    /// Resets path to default
+    /// Resets Xcode path to default
     #[arg(long="set-default-path")]
     should_delete_custom_path: bool,
 }
@@ -55,7 +55,7 @@ fn load_custom_path() -> Result<CustomPath, SavefileError> {
     load_file("xcodeclean_save.bin", 0)
 }
 
-fn developer_path() -> Option<Box<PathBuf>> {
+fn xcode_path() -> Option<Box<PathBuf>> {
     match load_custom_path() {
         Ok(custom_path) => {
             let path = Path::new(&custom_path.path_string);
@@ -77,7 +77,7 @@ fn developer_path() -> Option<Box<PathBuf>> {
 }
 
 fn delete_derived_data() {
-    let mut derived_path = developer_path().expect("Default path could not be found or custom path could not be parsed");
+    let mut derived_path = xcode_path().expect("Default path could not be found or custom path could not be parsed");
     derived_path.push("DerivedData");
 
     if !match derived_path.as_path().try_exists() {
@@ -88,7 +88,7 @@ fn delete_derived_data() {
             }
         } {
         println!("❌ DerivedData folder was not found at {}", derived_path.as_path().display());
-        println!("🧐 If you have a custom path for Developer folder set a custom path with --set-custom-path, or remove custom path with --set-default-path");
+        println!("🧐 If you have a custom path for Xcode folder set a custom path with --set-custom-path, or remove custom path with --set-default-path");
         return;
     }
     
@@ -104,7 +104,7 @@ fn delete_derived_data() {
 }
 
 fn delete_archives() {
-    let mut archives_path = developer_path().expect("Default path could not be found or custom path could not be parsed");
+    let mut archives_path = xcode_path().expect("Default path could not be found or custom path could not be parsed");
     archives_path.push("Archives");
 
     if !match archives_path.as_path().try_exists() {
@@ -115,7 +115,7 @@ fn delete_archives() {
             }
         } {
         println!("❌ Archives folder was not found");
-        println!("🧐 If you have a custom path for Developer folder set a custom path with --set-custom-path, or remove custom path with --set-default-path");
+        println!("🧐 If you have a custom path for Xcode folder set a custom path with --set-custom-path, or remove custom path with --set-default-path");
         return;
     }
 
@@ -141,7 +141,7 @@ fn main() {
             if !args.should_delete_custom_path {
                 save_custom_path(custom_path);
             } else {
-                println!("🧐 You have set custom path to remove and then asked to set it... Bipolar much? I'm gonna remove it")
+                println!("🧐 You have asked to set custom path and remove it... Bipolar much? I'm gonna remove it")
             }
         },
         None => {
