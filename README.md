@@ -28,12 +28,12 @@ Delete DerivedData (-d) or Archives (-a)
 ```bash
   xcodeclean -d -a
 ```
-Specify custom Developer path (in a directory or explicitly)
+Specify custom Xcode path (in a directory or explicitly)
 ```bash
-  xcodeclean --set-custom-path /Users/awesomename/Developer
+  xcodeclean --set-custom-path /Users/awesomename/Developer/Xcode
   xcodeclean --set-custom-path {pwd}
 ```
-Remove custom Developer path and set to default
+Remove custom Xcode path and set to default
 ```bash
   xcodeclean --set-default-path
 ```
@@ -43,7 +43,7 @@ Options
   Options:
   -d                                   Should the program delete Xcode derived data
   -a                                   Should the program delete Xcode archives
-      --set-custom-path <CUSTOM_PATH>  Sets custom path to Developer folder (saves between sessions), use pwd in your Developer folder to set this argument
+      --set-custom-path <CUSTOM_PATH>  Sets custom path to Xcode folder (saves between sessions), use pwd in your Xcode folder to set this argument
       --set-default-path               Resets path to default
   -h, --help                           Print help
   -V, --version                        Print version
